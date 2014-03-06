@@ -17,7 +17,7 @@ var detailTime = {
 		var timeIn = moment(pdate, 'HH:mm');
 			timeOut = moment(pdate, 'HH:mm');
 
-		timeIn.subtract(parseFloat(pentry.time),'hours');
+		timeOut.add(parseFloat(pentry.time),'hours');
 
 		pentry.time_in = timeIn.format('HH.mm');
 		pentry.time_out = timeOut.format('HH.mm');

@@ -13,6 +13,14 @@ var time_entry = {
 	*/
 	postTimeEntry: function(pentry){
 		return dataAccess.post(TIME_ENTRY, pentry);
+	},
+
+	/* puserId: user's id
+	get the time entries of this period
+	*/
+	getUserPeriodTimeEntry: function(puserId){
+		var message = USER_TIME_ENTRIES + puserId;
+		return dataAccess.get(message);
 	}
 };
 
