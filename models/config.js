@@ -73,6 +73,13 @@ var getJson = function(){
 var config = {
 
 	/* 
+	returns a boolean with saying if the config file exists 
+	*/
+	existConfig: function(){
+		return dataAccess.existConfig();
+	}
+
+	/* 
 	register a user in the configuration file
 	pdata: data to save
 	*/
@@ -159,36 +166,7 @@ var config = {
 		}
 	},
 
-	/* 
-	return the information of the configuration
-	*/
-	getConfig: function(){
-		var data = getJson();
-
-		if(!dataAccess.existConfig()){
-			colog.log(colog.colorRed('Error: Make a configuration file'));
-		}
-		return data;
-	},
-
-	/* 
-	prepos: array of repositories in the configuration file
-	prepo: repository to be deleted
-	returns the array of repos without the deleted repo.
-	*/
-	deleteRepo: function(prepos, prepo){
-		var repos = _.reject(prepos, function(repository){ return repository.path === prepo.path;});
-		return repos;
-	},
-
-	/* 
-	delete the configuration file
-	*/
-	deleteConfig: function(){
-		dataAccess.deleteConfig();
-	},
-
-	/* 
+/* 
 	pconfig: configuration
 	prepos: new repos to insert
 	saves the repositories in the configuration file
@@ -201,11 +179,17 @@ var config = {
 		dataAccess.saveConfig(dataFile);
 	},
 
+
 	/* 
-	returns a boolean with saying if the config file exists 
+	return the information of the configuration
 	*/
-	existConfig: function(){
-		return dataAccess.existConfig();
+	getConfig: function(){
+		var data = getJson();
+
+		if(!dataAccess.existConfig()){
+			colog.log(colog.colorRed('Error: Make a configuration file'));
+		}
+		return data;
 	}
 
 };

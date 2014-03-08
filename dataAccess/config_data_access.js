@@ -1,79 +1,109 @@
 var path = require('path'),
 	colog = require('colog'),
-	fs = require('fs');
+	prompt = require('prompt'),
+	_ = require('underscore'),
+	config = require(path.resolve(__dirname,'../models/config.js')),
+	commit = require(path.resolve(__dirname,'../models/commit.js')),
+	user = require(path.resolve(__dirname,'../models/user.js')),
+	utils = require(path.resolve(__dirname,'../lib/utils.js')),
+	project = require(path.resolve(__dirname,'../models/project.js'));
 
-var CONFIGPATH = '.ttlogn';
+var INTEGER = /^\d+$/,
+	NAME = 'name';
 
-/* 
-	get the user's home path
+/*
+pbranches: branches to select and bind
+pproject: project to save
+waits the user to choose a project, then save the repository
 */
-var configPath = function () {
-	var pathResult;
-	pathResult = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE;
-	pathResult = path.join(pathResult, CONFIGPATH);
-	return pathResult;
-};
+var saveRepo = function(pbranches, pproject){
+	newBranch = {};
 
+	colog.log(colog.colorBlue('Select a branch: '));
+	_.each(pbranches, function(branch, index){
+		index++;
+		colog.log(colog.colorBlue(index + ': ' + branch.name));
+	});
+	all = pbranches.length + 1;
+	colog.log(colog.colorBlue(all + ': All'));
 
-	/* 
-	saves the a file in an asynchronous way
-	ppath: path 
-	pdata: data to save
-	*/
-var saveFile = function (pdata){
-	var relativePath = configPath();
-	fs.writeFile(relativePath, pdata, 'utf8', '0777',function(err){
-            if(err) {
-				colog.log(colog.colorRed('Error: saving file.'));
-                colog.log(colog.colorRed(err));
-                process.exit(1);
-            }
-            else{
-				colog.log(colog.colorGreen('Success: configuration file saved'));
+	prompt.start();
+
+	prompt.get({
+		properties: {
+			branch: {
+				description: "Number of the branch: ".magenta,
+				required: true
 			}
-
-        });
-};
-
-var configDataAccess = {
-
-	/* 
-	saves the configuration file in an asynchronous way
-	pdata: data to save
-	*/
-	saveConfig: function(pdata){
-		saveFile(pdata);
-	},
-
-	/* 
-	deletes the configuration file
-	*/
-	deleteConfig: function(){
-		var relativePath = configPath();
-		try {
-			fs.unlinkSync(relativePath);
-		} catch(err){
-			colog.log(colog.colorRed('Error: deleting file. '));
+		}
+	}, function (err, resultPrompt) {
+		if(err){
 			colog.log(colog.colorRed(err));
 		}
-	},
-
-	/* 
-	read the configuration file
-	*/
-	readConfig: function(){
-		var relativePath = configPath();
-		return fs.readFileSync(relativePath, 'utf8');
-	},
-
-	/* 
-	returns a boolean, says if the config file exists
-	*/
-	existConfig: function(){
-		var relativePath = configPath();
-		return fs.existsSync(relativePath);
-	}
-
+		else{
+			if(resultPrompt.branch <= pbranches.length){
+				newBranch = pbranches[resultPrompt.branch - 1];
+			}
+			config.registerRepo(pproject, newBranch.name);
+		}
+	});
 };
 
-module.exports = configDataAccess;
+/*
+pprojects: projects of the user to display
+waits the user to choose a project, then save the repository
+*/
+var getProject = function(pprojects){
+	var repoPath = process.cwd(), //'/mnt/hgfs/Development/repoPrueba', //process.cwd(),
+		newProject = {};
+
+	utils.getPromptProject(pprojects).then(function(pproject){
+		newProject = pproject;
+		return commit.getRepoBranches(repoPath);
+
+	}).then(function(pbranches){
+		saveRepo(pbranches, newProject);
+	
+	}).catch(function(error) {
+		colog.log(colog.colorRed(error));
+	});
+};
+
+
+var controllerConfigFile = {
+	/* 
+	register a user in the configuration file
+	puser: the information of the user
+	*/
+	registerUser: function(puser){
+		config.registerUser(puser);
+	},
+
+	/* 
+	pbranch: branch to bind
+	register a repo in the configuration file
+	*/
+	registerRepo: function(pbranch){
+		var configuration = {};
+		
+		if(config.existConfig()){
+			configuration = config.getConfig();
+			user.login(configuration.email, configuration.password).then(function(puser){
+				return project.getProjects(puser.result.id);
+
+			}).then(function(pprojects) {
+				utils.printArray(pprojects.result, NAME);
+				getProject(pprojects.result);
+
+			}).catch(function(error) {
+				colog.log(colog.colorRed(error));
+			});
+		}
+		else{
+			colog.log(colog.colorRed('Error: Make first the configuration:'));
+			colog.log(colog.colorRed('ttlogn login'));
+		}
+	}
+};
+
+module.exports = controllerConfigFile;
