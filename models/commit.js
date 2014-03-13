@@ -14,6 +14,148 @@ var limitDate = new Date();
 
 var commit = {
 
+	// returns the limit date
+	getDateLimit: function(){
+		return limitDate;
+	},
+
+	/* prepo: repository 
+	pbranch: branch of a repo
+	get commits of a branch */
+	getCommits: function(prepo, pbranch){
+		
+		var promise = new RSVP.Promise(function(resolve, reject){
+			var date = moment(),
+				numberCommits = 0,
+				skip = 0,
+				numberArray = 0,
+				self = this,
+				continueWhile = true;
+						
+			async.doWhilst(
+				function (callback) {
+					repo = git(prepo.path);
+					branch = pbranch.name;
+					//console.log(pbranch);
+
+					repo.commits(branch, NUMBER_COMMITS, skip, function(err, commits){
+						if(err){
+							colog.log(colog.colorRed(err));
+						}
+						else{
+							//console.log(pbranch);
+							pbranch.commits = pbranch.commits.concat(commits);
+							numberArray = commits.length - 1;
+							date = commits[numberArray].committed_date;
+							skip += NUMBER_COMMITS;
+
+							if(date < limitDate || numberArray !== (NUMBER_COMMITS - 1)) continueWhile = false;
+						}
+						callback(err);
+					});
+				},
+				function () {
+					var ret = true;
+					if(!continueWhile){
+						ret = false;
+					}
+					return ret; },
+				function (err) {
+					if(err){
+						reject(self);
+						return false;
+					}
+					resolve();
+				});
+			});
+		return promise;
+	},
+
+	/* prepos: the array of repositories
+	gets commits of a branch */
+	getBranchCommits: function(prepos){
+		var promise = new RSVP.Promise(function(resolve, reject){
+			var promises = [],
+				self = this;
+
+			_.each(prepos, function(repository){
+				_.each(repository.branches, function(branch){
+					promises.push(commit.getCommits(repository, branch));
+				});
+			});
+
+			RSVP.all(promises).then(function(posts){
+				resolve();
+			}).catch(function(reason){
+				colog.log(colog.colorRed(reason));
+				reject(self);
+			});
+		});
+		return promise;
+	},
+
+	/* pdate: -d/-w/-m
+	set the limit date of the commits of the commits */
+	setDateLimit: function (pdate){
+
+		limitDate = moment().startOf('day');
+
+		if(pdate === '-w'){
+			limitDate = moment().startOf('week');
+		}
+		else if(pdate === '-m'){
+			limitDate = moment().startOf('month');
+		}
+	},
+
+	/* pprepos: the array of repositories
+	get the branches of the repositories */
+	getBranch: function(prepo){
+		var promise = new RSVP.Promise(function(resolve, reject){
+			var repo = [],
+				objectBrach = {},
+				self = this;
+					
+			if(_.isArray(prepo.configBranches)){
+				//console.log('entre branches');
+				_.each(prepo.configBranches, function(value){
+					objectBrach = {
+						name: value.branch,
+						project: value.name,
+						projectId: value.id,
+						commits: []
+					};
+					prepo.branches.push(objectBrach);
+		//				console.log(item.branches);
+				});
+				resolve();
+			}
+			else{
+		//		console.log('entre all');
+				repo = git(prepo.path);
+				repo.branches(function (err, branches){
+					if(err){
+						colog.log(colog.colorRed(err));
+						reject(self);
+					}
+					else{
+						_.each(branches, function(value){
+							objectBrach = {
+								name: value.name,
+								project: prepo.configBranches.name,
+								projectId: prepo.configBranches.id,
+								commits: []
+							};
+
+							prepo.branches.push(objectBrach);
+						});
+						resolve();
+					}
+				});
+			}
+		});
+		return promise;
+	},
 
 	/* pprepos: the array of repositories
 	get the branches of the repositories */
