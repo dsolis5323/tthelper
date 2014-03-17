@@ -9,6 +9,18 @@ var _ = require('underscore'),
 
 var DATE_FORMAT = 'dddd, DD MMMM YYYY'; //--- HH:mm
 
+/* prepos: array of repos
+sort the commits by time
+*/
+var	sortProjects = function(prepos){
+	_.each(prepos, function(projects){
+		_.each(projects, function(project){
+			var sortedProject = _.sortBy(project.commits, function(sortedCommit)
+				{ return sortedCommit.date; });
+			project.commits = sortedProject.reverse();
+		});
+	});
+};
 
 /* pdate: date to be the limit
 return the limite date
@@ -29,19 +41,19 @@ var	printCommits = function(prepos){
 		message = '',
 		limitDate = moment(),
 		hoursPerDate = 0,
-		hours = 0,
+		hoursPerTask = 0,
 		firstCommit = {};
 
 		limitDate = moment().startOf('day');
+		sortProjects(prepos);
 
 	_.each(prepos, function(projects){
 		_.each(projects, function(project){
 			if(project.commits.length !== 0){
-				console.log('\n-------------------------------');
+
 				console.log('\n-------------------------------');
 				colog.log(colog.apply(project.name, ['underline', 'bold', 'colorBlue']));
 				console.log('-------------------------------\n');
-
 
 				firstCommit = _.first(project.commits);
 				date = firstCommit.date;
@@ -52,8 +64,16 @@ var	printCommits = function(prepos){
 
 				_.each(project.commits, function(value){
 					
+					if(value.date <= limitDate){
+						colog.log(colog.apply('Hours worked: '+ hoursPerDate + '\n', ['colorGreen']));
+						hoursPerDate = 0;
+						limitDate = setPrintDateLimit(value.date);
+
+						date = value.date.format(DATE_FORMAT);
+						colog.log(colog.apply(date, ['bold', 'colorBlue']));
+					}
 					hoursPerTask = parseFloat(utils.getWork(value.message));
-					hours += hoursPerTask;
+					hoursPerDate += hoursPerTask;
 					message = value.message.split('\n');
 					value.message = message[0];
 					colog.log(colog.colorBlue('\t' + value.message));
