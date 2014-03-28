@@ -9,6 +9,64 @@ var _ = require('underscore'),
 
 var DATE_FORMAT = 'dddd, DD MMMM YYYY'; //--- HH:mm
 
+
+/* pdate: date to be the limit
+return the limite date
+*/
+var	setPrintDateLimit = function(pdate){
+	var limitDate = moment().startOf('day');
+	limitDate.date(pdate.get('date'));
+	limitDate.month(pdate.get('month'));
+	limitDate.year(pdate.get('year'));
+	return limitDate;
+};
+
+/* prepos: array of repos with commits
+prints the information of the commits 
+*/
+var	printCommits = function(prepos){
+	var date = moment(),
+		message = '',
+		limitDate = moment(),
+		hoursPerDate = 0,
+		hours = 0,
+		firstCommit = {};
+
+		limitDate = moment().startOf('day');
+
+	_.each(prepos, function(projects){
+		_.each(projects, function(project){
+			if(project.commits.length !== 0){
+				console.log('\n-------------------------------');
+				console.log('\n-------------------------------');
+				colog.log(colog.apply(project.name, ['underline', 'bold', 'colorBlue']));
+				console.log('-------------------------------\n');
+
+
+				firstCommit = _.first(project.commits);
+				date = firstCommit.date;
+				limitDate = setPrintDateLimit(date);
+				date = date.format(DATE_FORMAT);
+				
+				colog.log(colog.apply(date, ['bold', 'colorBlue']));
+
+				_.each(project.commits, function(value){
+					
+					hoursPerTask = parseFloat(utils.getWork(value.message));
+					hours += hoursPerTask;
+					message = value.message.split('\n');
+					value.message = message[0];
+					colog.log(colog.colorBlue('\t' + value.message));
+				});
+				colog.log(colog.apply('Hours worked: '+ hoursPerDate, ['colorGreen']));
+				hoursPerDate = 0;
+			}
+		});
+	});
+};
+
+
+
 var controllerListCommits = {
 
 	/* 
