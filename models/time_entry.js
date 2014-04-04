@@ -14,12 +14,14 @@ var time_entry = {
 	postTimeEntry: function(pentry){
 		return dataAccess.post(TIME_ENTRY, pentry);
 	},
+	
 	/* pentry: object with the information need to delete the time entry
 	delete a time entry of an user
 	*/
 	deleteTimeEntry: function(pentry){
 		return dataAccess.post(DELETE_TIME_ENTRIES, pentry);
 	},
+
 	/* puserId: user's id
 	get the time entries of this period
 	*/
