@@ -77,7 +77,7 @@ var config = {
 	*/
 	existConfig: function(){
 		return dataAccess.existConfig();
-	}
+	},
 
 	/* 
 	register a user in the configuration file
