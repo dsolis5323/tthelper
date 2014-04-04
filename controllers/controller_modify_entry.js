@@ -46,6 +46,7 @@ var saveTimeEntry = function(){
 	});
 };
 
+
 /* 
 modify the time in of the task
 */
@@ -64,8 +65,6 @@ var modifyTimeIn = function(){
 		colog.log(colog.colorRed(error));
 	});
 };
-
-
 /*
 modify the created date of the task
 */
@@ -86,6 +85,19 @@ var modifyCreated = function(){
 	});
 };
 
+/* 
+modify the description of the task
+*/
+var modifyDescription = function(){
+	
+	utils.getPromptDescription().then(function(pdescription){
+		entryToModify.tskDescription = pdescription;
+		printTimeEntry();
+
+	}).catch(function(error) {
+		colog.log(colog.colorRed(error));
+	});
+};
 
 
 /* 
@@ -118,15 +130,17 @@ var modifyTime = function(){
 };
 
 
-/* 
-modify the description of the task
+/*
+modify the hour type of an entry
 */
-var modifyDescription = function(){
-	
-	utils.getPromptDescription().then(function(pdescription){
-		entryToModify.tskDescription = pdescription;
-		printTimeEntry();
+var getHourType = function(){
+	hourType.getHourType(userInfo.id).then(function(hourTypes){
+		utils.printArray(hourTypes.result, NAME);
+		return utils.getPromptHourType(hourTypes.result);
 
+	}).then(function(phourType){
+		entryToModify.hour_type = phourType;
+		printTimeEntry();
 	}).catch(function(error) {
 		colog.log(colog.colorRed(error));
 	});
@@ -142,22 +156,6 @@ var modifyProject = function(){
 		entryToModify.project = pproject;
 		printTimeEntry();
 
-	}).catch(function(error) {
-		colog.log(colog.colorRed(error));
-	});
-};
-
-/*
-modify the hour type of an entry
-*/
-var getHourType = function(){
-	hourType.getHourType(userInfo.id).then(function(hourTypes){
-		utils.printArray(hourTypes.result, NAME);
-		return utils.getPromptHourType(hourTypes.result);
-
-	}).then(function(phourType){
-		entryToModify.hour_type = phourType;
-		printTimeEntry();
 	}).catch(function(error) {
 		colog.log(colog.colorRed(error));
 	});
