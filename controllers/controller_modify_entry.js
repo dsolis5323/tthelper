@@ -37,12 +37,10 @@ var saveTimeEntry = function(){
 		time: entryToModify.time,
 		hour_type_id: entryToModify.hour_type.id
 	};
-
 	if(userInfo.devtype === 'non_exempt'){
 		task.time_in = entryToModify.detail_hours.time_in;
 		task.time_out = entryToModify.detail_hours.time_out;
 	}
-
 	timeEntry.postTimeEntry(task).then(function(){
 		colog.log(colog.colorGreen('Time entry saved'));
 	});
@@ -52,7 +50,6 @@ var saveTimeEntry = function(){
 modify the time in of the task
 */
 var modifyTimeIn = function(){
-
 	utils.getPromptDetailHour().then(function(timeResult){
 		var timeIn = moment(timeResult, 'HH:mm');
 			timeOut = moment(timeResult, 'HH:mm');

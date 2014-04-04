@@ -70,7 +70,6 @@ var saveTask = function(ptask, puser, pprojects){
 	});
 };
 
-
 /* 
 puser: information of the user
 pprojects: information of the projects

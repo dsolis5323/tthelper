@@ -10,7 +10,7 @@ var detailTime = {
 	/* 
 	pentry: entry to insert the detail times,
 	phour: hours worked
-	pdate: time of timeIn
+	pdate: time of timein of the task
 	sets the detail time of a new entry
 	*/
 	setDetailTime: function(pentry, phour, pdate){
